@@ -32,7 +32,9 @@ jobs:
 
       - name: Get iOS SDK
         run: |
-          git clone --depth=1 https://github.com/theos/sdks.git $THEOS/sdks
+          git clone --depth=1 https://github.com/theos/sdks.git /tmp/sdks
+          mkdir -p $THEOS/sdks
+          cp -r /tmp/sdks/*.sdk $THEOS/sdks/
           ls $THEOS/sdks
 
       - name: Build package
