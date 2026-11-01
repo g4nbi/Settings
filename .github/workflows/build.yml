@@ -7,42 +7,40 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Theos
-        run: |
-          git clone --recursive https://github.com/theos/theos.git $HOME/theos
-          echo "THEOS=$HOME/theos" >> $GITHUB_ENV
-          echo "$HOME/theos/bin" >> $GITHUB_PATH
-
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y fakeroot build-essential clang llvm xz-utils
+          sudo apt-get install -y build-essential fakeroot libtinfo5 libz3-dev rsync curl perl unzip git xz-utils
 
-      - name: Download iOS SDK
+      - name: Set up Theos
         run: |
-          cd $THEOS
-          mkdir -p sdks
-          curl -L -o sdks.zip https://github.com/theos/sdks/archive/refs/heads/master.zip || true
-          unzip -q sdks.zip -d sdks-tmp || true
-          cp -r sdks-tmp/sdks-master/* sdks/ || true
-          rm -rf sdks.zip sdks-tmp || true
-          ls -la sdks/ || true
+          git clone --recursive --depth=1 https://github.com/theos/theos.git $HOME/theos
+          echo "THEOS=$HOME/theos" >> $GITHUB_ENV
+          echo "$HOME/theos/bin" >> $GITHUB_PATH
+
+      - name: Get iOS toolchain
+        run: |
+          curl -L https://github.com/kabiroberai/swift-toolchain-linux/releases/download/v2.1.0/swift-5.6.1-ubuntu20.04.tar.xz \
+            | tar -xJ -C $THEOS/toolchain
+          ls $THEOS/toolchain/linux/iphone/bin | head
+
+      - name: Get iOS SDK
+        run: |
+          git clone --depth=1 https://github.com/theos/sdks.git $THEOS/sdks
+          ls $THEOS/sdks
 
       - name: Build package
-        run: |
-          export THEOS=$HOME/theos
-          export PATH=$THEOS/bin:$PATH
-          make package FINALPACKAGE=1
+        run: make package FINALPACKAGE=1
 
-      - name: Upload .deb artifact
+      - name: Upload .deb
         uses: actions/upload-artifact@v4
         with:
           name: Settings-deb
           path: packages/*.deb
-          if-no-files-found: warn
+          if-no-files-found: error
