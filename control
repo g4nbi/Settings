@@ -1,0 +1,9 @@
+Package: com.ganbi.settings
+Name: Settings
+Depends: mobilesubstrate, preferenceloader
+Version: 1.0.0
+Architecture: iphoneos-arm64
+Description: Native-looking Settings preference for Nyxian environment
+Maintainer: Ganbi
+Author: Ganbi
+Section: Preferences
