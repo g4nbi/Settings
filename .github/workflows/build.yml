@@ -1,0 +1,48 @@
+name: Build Settings Deb
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Theos
+        run: |
+          git clone --recursive https://github.com/theos/theos.git $HOME/theos
+          echo "THEOS=$HOME/theos" >> $GITHUB_ENV
+          echo "$HOME/theos/bin" >> $GITHUB_PATH
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fakeroot build-essential clang llvm libtinfo5 xz-utils
+
+      - name: Download iOS SDK
+        run: |
+          cd $THEOS
+          mkdir -p sdks
+          # Using a commonly available SDK
+          curl -L -o sdks.zip https://github.com/theos/sdks/archive/refs/heads/master.zip || true
+          unzip -q sdks.zip -d sdks-tmp || true
+          cp -r sdks-tmp/sdks-master/* sdks/ || true
+          rm -rf sdks.zip sdks-tmp || true
+
+      - name: Build package
+        run: |
+          export THEOS=$HOME/theos
+          export PATH=$THEOS/bin:$PATH
+          make package FINALPACKAGE=1
+
+      - name: Upload .deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Settings-deb
+          path: packages/*.deb
+          if-no-files-found: warn
