@@ -35,6 +35,7 @@ jobs:
           git clone --depth=1 https://github.com/theos/sdks.git /tmp/sdks
           mkdir -p $THEOS/sdks
           cp -r /tmp/sdks/*.sdk $THEOS/sdks/
+          rm -rf $THEOS/sdks/iPhoneOS16*.sdk $THEOS/sdks/iPhoneOS17*.sdk $THEOS/sdks/iPhoneOS18*.sdk
           ls $THEOS/sdks
 
       - name: Build package
